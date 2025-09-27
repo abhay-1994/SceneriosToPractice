@@ -3,11 +3,13 @@
 <suite name="Failed suite [Default suite]" guice-stage="DEVELOPMENT">
   <test thread-count="5" name="Default test(failed)">
     <classes>
-      <class name="paginationUsingJava.PaginationTest">
+      <class name="trickychallanges.SeleniumTrickyChallengesTest">
         <methods>
-          <include name="testAnother"/>
+          <include name="setup"/>
+          <include name="testDynamicList"/>
+          <include name="tearDown"/>
         </methods>
-      </class> <!-- paginationUsingJava.PaginationTest -->
+      </class> <!-- trickychallanges.SeleniumTrickyChallengesTest -->
     </classes>
   </test> <!-- Default test(failed) -->
 </suite> <!-- Failed suite [Default suite] -->

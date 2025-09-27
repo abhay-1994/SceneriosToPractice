@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Selenium Tricky Challenges — Simulation</title>
+  <style>
+    :root{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;}
+    body{margin:0;padding:24px;background:#0f172a;color:#e6eef8;}
+    header{display:flex;gap:16px;align-items:center;margin-bottom:18px;}
+    h1{margin:0;font-size:20px;}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;}
+    .card{background:linear-gradient(180deg,#081029 0%, #071427 100%);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 8px 24px rgba(2,6,23,0.5);}
+    .card h2{margin:0 0 8px 0;font-size:16px;}
+    .meta{font-size:12px;color:#9fb0d6;margin-bottom:8px;}
+    button, input[type="file"]{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:inherit;cursor:pointer;}
+    .row{display:flex;gap:8px;flex-wrap:wrap;}
+    .list{max-height:140px;overflow:auto;background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;}
+    #log{height:120px;overflow:auto;background:#031025;padding:8px;border-radius:8px;font-family:monospace;font-size:12px;}
+    .hidden{display:none;}
+    .draggable{width:70px;height:70px;border-radius:8px;background:linear-gradient(180deg,#2b6bff,#1848d8);display:flex;align-items:center;justify-content:center;color:white;cursor:grab;}
+    .dropzone{min-height:90px;border:2px dashed rgba(255,255,255,0.06);border-radius:8px;padding:12px;display:flex;align-items:center;justify-content:center;}
+    .shadow-host{padding:12px;border-radius:8px;background:rgba(255,255,255,0.02);}
+    footer{margin-top:18px;font-size:13px;color:#9fb0d6;}
+    .badge{padding:4px 8px;background:rgba(255,255,255,0.02);border-radius:99px;font-size:12px;border:1px solid rgba(255,255,255,0.03);}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Selenium Tricky Challenges — Simulation</h1>
+  <div class="meta">Use this page to automate tricky UI scenarios. Each card includes instructions and controls to reproduce behaviors.</div>
+</header>
+
+<div class="grid">
+  <!-- Challenge 1 -->
+  <section class="card" id="challenge-dynamic">
+    <h2>1) Dynamic List & Stale Element</h2>
+    <div class="meta">Elements are frequently added/removed. Task: reliably click the last "Complete" button of newly added items.</div>
+    <div class="row">
+      <button id="add-item">Add item</button>
+      <button id="remove-item">Remove item</button>
+      <button id="populate-10">Add 10 quickly</button>
+    </div>
+    <div style="margin-top:10px" class="list" id="todo-list" aria-label="todo-list"></div>
+  </section>
+
+  <!-- Challenge 2: Shadow DOM -->
+  <section class="card" id="challenge-shadow">
+    <h2>2) Shadow DOM</h2>
+    <div class="meta">A widget inside a ShadowRoot. Task: access and type into the shadow input.</div>
+    <div class="shadow-host" id="shadow-host">Shadow host (open mode)
+      <div id="shadow-controls" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- Challenge 3: Nested iFrames -->
+  <section class="card" id="challenge-iframe">
+    <h2>3) Nested iFrames</h2>
+    <div class="meta">Iframes nested 2 levels deep. Task: click the button inside the deepest iframe.</div>
+    <div style="margin-top:8px;" id="iframe-area"></div>
+  </section>
+
+  <!-- Challenge 4: AJAX / Lazy Load -->
+  <section class="card" id="challenge-ajax">
+    <h2>4) AJAX / Lazy Load</h2>
+    <div class="meta">Content appears after a random delay. Task: wait for the record with specific text to appear and validate it.</div>
+    <div class="row" style="margin-top:8px">
+      <button id="start-ajax">Start AJAX load</button>
+      <button id="cancel-ajax">Cancel</button>
+    </div>
+    <div style="margin-top:10px" class="list" id="ajax-list"></div>
+  </section>
+
+  <!-- Challenge 5: File Upload -->
+  <section class="card" id="challenge-upload">
+    <h2>5) File Upload (hidden input)</h2>
+    <div class="meta">The file input is visually hidden. Task: upload a file and read back file name.</div>
+    <div style="margin-top:8px">
+      <input id="real-file" type="file" class="hidden" aria-hidden="true">
+      <button id="trigger-upload">Trigger Upload</button>
+      <div id="upload-result" style="margin-top:8px;color:#9fb0d6">No file chosen</div>
+    </div>
+  </section>
+
+  <!-- Challenge 6: Drag & Drop -->
+  <section class="card" id="challenge-dnd">
+    <h2>6) Drag & Drop (HTML5)</h2>
+    <div class="meta">Drag an element into a drop zone. Task: perform HTML5 drag-drop reliably.</div>
+    <div style="margin-top:8px" class="row">
+      <div class="draggable" id="drag-1" draggable="true">Drag me</div>
+      <div style="flex:1" class="dropzone" id="dropzone-1">Drop here</div>
+    </div>
+  </section>
+
+  <!-- Challenge 7: Context Menu -->
+  <section class="card" id="challenge-context">
+    <h2>7) Context Menu & Keyboard</h2>
+    <div class="meta">Right-click opens custom menu. Task: open context menu and choose 'Inspect' option.</div>
+    <div style="margin-top:8px" id="ctx-target" class="list">Right-click inside this box.</div>
+    <div id="ctx-menu" class="hidden" style="position:fixed;padding:8px;background:#06142a;border-radius:8px;">
+      <div><button id="ctx-inspect">Inspect</button></div>
+      <div style="margin-top:6px"><button id="ctx-copy">Copy</button></div>
+    </div>
+    <input id="inspected-value" class="hidden" placeholder="Inspected" style="margin-top:8px;padding:8px;border-radius:8px;border:none;min-width:220px;">
+  </section>
+
+  <!-- Challenge 8: Hidden / Animated Element -->
+  <section class="card" id="challenge-hidden">
+    <h2>8) Hidden / Animated Element</h2>
+    <div class="meta">Element is off-screen then animated into view. Task: scroll and interact after CSS transform completes.</div>
+    <div style="height:140px;overflow:auto;padding:12px;background:rgba(0,0,0,0.15);border-radius:8px">
+      <div style="height:300px;position:relative">
+        <div id="slide-target" style="position:absolute;left:-500px;top:100px;transition:left 1s ease;padding:10px;background:#072043;border-radius:8px">Click me after I slide</div>
+        <button id="slide-in" style="position:absolute;top:8px;right:8px">Slide target in</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Challenge 9: Infinite scroll -->
+  <section class="card" id="challenge-infinite">
+    <h2>9) Infinite Scroll / Load More</h2>
+    <div class="meta">List appends items as you scroll. Task: detect and validate item 50 exists.</div>
+    <div id="scroll-area" class="list" style="height:160px;" aria-label="infinite-list"></div>
+  </section>
+
+  <!-- Challenge 10: Modal / Alerts -->
+  <section class="card" id="challenge-modal">
+    <h2>10) Modal / Alerts & Race</h2>
+    <div class="meta">A modal appears and then an alert triggers. Task: handle modal and accept alert correctly.</div>
+    <div style="margin-top:8px" class="row">
+      <button id="open-modal">Open modal (then alert)</button>
+    </div>
+    <div id="modal" style="position:fixed;left:0;top:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);">
+      <div style="background:#07122a;padding:18px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)">
+        <div>Modal content</div>
+        <div style="margin-top:8px"><button id="modal-close">Close</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Quick log -->
+<div style="margin-top:18px" class="card">
+  <h2>Quick log / validation area</h2>
+  <div id="log">Actions log will appear here.</div>
+</div>
+
+<footer>
+  <div class="badge">Designed for Java + Selenium automation practice — IDs and ARIA labels included for robust locating strategies.</div>
+</footer>
+
+<script>
+const log = msg => {
+  const el = document.getElementById('log');
+  el.innerHTML += '\n' + new Date().toLocaleTimeString() + ' - ' + msg;
+  el.scrollTop = el.scrollHeight;
+};
+
+// ---------- Challenge 1 ----------
+const todo = document.getElementById('todo-list');
+let counter=0;
+function addItem(){
+  counter++;
+  const id = 'item-'+Date.now();
+  const div = document.createElement('div');
+  div.className='todo-item';
+  div.setAttribute('data-item-id',id);
+  div.style.display='flex';
+  div.style.justifyContent='space-between';
+  div.style.padding='6px';
+  div.style.marginBottom='6px';
+  div.innerHTML = `<span class="itm-text">Task ${counter}</span><span><button class='complete'>Complete</button></span>`;
+  todo.prepend(div);
+  log('Added ' + id);
+}
+function removeItem(){
+  const first = todo.querySelector('.todo-item');
+  if(first){ first.remove(); log('Removed one item'); }
+}
+document.getElementById('add-item').addEventListener('click', addItem);
+document.getElementById('remove-item').addEventListener('click', removeItem);
+document.getElementById('populate-10').addEventListener('click', ()=>{ for(let i=0;i<10;i++){ addItem(); } });
+todo.addEventListener('click', e=>{ if(e.target.matches('.complete')){ const item = e.target.closest('.todo-item'); item.style.opacity=0.5; log('Clicked Complete on '+ item.dataset.itemId); }});
+
+// ---------- Challenge 2 ----------
+(function(){
+  const host=document.getElementById('shadow-host');
+  const shadow = host.attachShadow({mode:'open'});
+  const wrapper=document.createElement('div');
+  wrapper.innerHTML = `<label>Shadow Input:</label><input id='shadow-input' placeholder='type here'/> <button id='shadow-btn'>Submit</button>`;
+  shadow.appendChild(wrapper);
+  document.getElementById('shadow-controls').appendChild(document.createTextNode('(open shadow root attached)'));
+  shadow.querySelector('#shadow-btn').addEventListener('click', ()=> log('Shadow input value: ' + shadow.querySelector('#shadow-input').value));
+})();
+
+// ---------- Challenge 3 ----------
+(function(){
+  const area=document.getElementById('iframe-area');
+  const outer = document.createElement('iframe');
+  outer.name='outer-frame';
+  outer.style.width='100%'; outer.style.height='140px'; outer.style.border='1px solid rgba(255,255,255,0.04)';
+  area.appendChild(outer);
+  outer.addEventListener('load', ()=>{
+    const doc = outer.contentDocument || outer.contentWindow.document;
+    doc.body.style.background='#071428'; doc.body.style.color='#dfeefe'; doc.body.innerHTML = '<h3>Outer frame</h3>';
+    const inner = doc.createElement('iframe'); inner.name='inner-frame'; inner.style.width='100%'; inner.style.height='80px'; inner.style.border='1px solid rgba(255,255,255,0.04)'; doc.body.appendChild(inner);
+    inner.addEventListener('load', ()=>{
+      const doc2 = inner.contentDocument || inner.contentWindow.document;
+      doc2.body.style.background='#09203a'; doc2.body.style.color='#dfeefe';
+      doc2.body.innerHTML = '<button id="deep-btn">Deep button</button>';
+      doc2.getElementById('deep-btn').addEventListener('click', ()=> window.top.log('Deep button clicked! (from nested iframe)'));
+    });
+    inner.src='about:blank';
+  });
+  outer.src='about:blank';
+})();
+
+// ---------- Challenge 4 ----------
+let ajaxTimer=null;
+document.getElementById('start-ajax').addEventListener('click', ()=>{
+  const list = document.getElementById('ajax-list'); list.innerHTML='';
+  if(ajaxTimer) clearInterval(ajaxTimer);
+  let i=0;
+  ajaxTimer = setInterval(()=>{
+    i++; const delay = Math.floor(Math.random()*1200)+200;
+    setTimeout(()=>{
+      const el = document.createElement('div'); 
+      el.textContent = 'Record #' + i + (Math.random()<0.1? ' — special-keyword':''); 
+      list.appendChild(el); log('AJAX added record '+i);
+    }, delay);
+    if(i>=12){ clearInterval(ajaxTimer); log('AJAX completed'); }
+  },350);
+});
+document.getElementById('cancel-ajax').addEventListener('click', ()=>{ if(ajaxTimer) clearInterval(ajaxTimer); log('AJAX cancelled'); });
+
+// ---------- Challenge 5 ----------
+const realFile = document.getElementById('real-file');
+document.getElementById('trigger-upload').addEventListener('click', ()=> realFile.click());
+realFile.addEventListener('change', ()=>{ 
+  const f = realFile.files[0]; 
+  document.getElementById('upload-result').textContent = f ? f.name : 'No file chosen'; 
+  log('File chosen: ' + (f?f.name:'none')); 
+});
+
+// ---------- Challenge 6 ----------
+(function(){
+  const drag = document.getElementById('drag-1'); const drop = document.getElementById('dropzone-1');
+  drag.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain','drag-1'); e.dataTransfer.effectAllowed='move'; log('dragstart'); });
+  drop.addEventListener('dragover', e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; });
+  drop.addEventListener('drop', e=>{ e.preventDefault(); const id = e.dataTransfer.getData('text/plain'); drop.textContent = id + ' dropped'; log(id + ' dropped into zone'); });
+})();
+
+// ---------- Challenge 7 ----------
+(function(){
+  const target=document.getElementById('ctx-target'); const menu=document.getElementById('ctx-menu');
+  target.addEventListener('contextmenu', e=>{ e.preventDefault(); menu.classList.remove('hidden'); menu.style.left = e.clientX + 'px'; menu.style.top = e.clientY + 'px'; log('Custom context opened'); });
+  document.getElementById('ctx-inspect').addEventListener('click', ()=>{ menu.classList.add('hidden'); const inp = document.getElementById('inspected-value'); inp.classList.remove('hidden'); inp.value = 'inspected @ ' + new Date().toLocaleTimeString(); log('Inspect selected'); });
+  document.getElementById('ctx-copy').addEventListener('click', ()=>{ menu.classList.add('hidden'); log('Copy selected'); });
+  document.addEventListener('click', ()=>{ menu.classList.add('hidden'); });
+})();
+
+// ---------- Challenge 8 ----------
+document.getElementById('slide-in').addEventListener('click', ()=>{ document.getElementById('slide-target').style.left = '40px'; log('Slide animation started'); });
+document.getElementById('slide-target').addEventListener('click', ()=> log('Slide target clicked'));
+
+// ---------- Challenge 9 ----------
+(function(){
+  const area=document.getElementById('scroll-area'); let idx=0;
+  function append(n=10){ for(let i=0;i<n;i++){ idx++; const el=document.createElement('div'); el.textContent = 'Item #' + idx; el.style.padding='6px'; area.appendChild(el); } }
+  append(20);
+  area.addEventListener('scroll', ()=>{ if(area.scrollTop + area.clientHeight >= area.scrollHeight - 8){ append(10); log('Appended items, now ' + idx); } });
+})();
+
+// ---------- Challenge 10 ----------
+const modal = document.getElementById('modal');
+document.getElementById('open-modal').addEventListener('click', ()=>{
+  modal.style.display = 'flex';
+  setTimeout(()=>{ alert('This alert may appear while modal is open'); log('Alert triggered'); },500);
+});
+document.getElementById('modal-close').addEventListener('click', ()=>{
+  modal.style.display = 'none';
+  log('Modal closed');
+});
+
+log('Simulation loaded. Ready for automation.');
+</script>
+</body>
+</html>
