@@ -23,7 +23,7 @@ public class HoverClickWindowGeneric {
         driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.manage().window().fullscreen();
-        driver.get("file:///C:/Users/User/eclipse-workspace/TekPyramidPractice/hover_sequence%20(1).html"); // Replace with actual URL
+        driver.get("file:///C:/Users/User/eclipse-workspace/ScenraiosToPractice/hover_sequence%20(1).html"); // Replace with actual URL
 
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         actions = new Actions(driver);
